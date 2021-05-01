@@ -17,8 +17,12 @@
 #ifndef JVMDISASSEMBLER_CLASS_H
 #define JVMDISASSEMBLER_CLASS_H
 
+typedef unsigned char ubyte;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+
 typedef struct OneByte {
-    unsigned char byte;
+    ubyte byte;
 } u1;
 
 typedef struct TwoBytes {
@@ -31,13 +35,13 @@ typedef struct FourBytes {
     u2 second;
 } u4;
 
-u1 u1of(unsigned char first);
-u2 u2of(unsigned char first, unsigned char second);
-u4 u4of(unsigned char first, unsigned char second, unsigned char third, unsigned char fourth);
+u1 u1of(ubyte first);
+u2 u2of(ubyte first, ubyte second);
+u4 u4of(ubyte first, ubyte second, ubyte third, ubyte fourth);
 
-unsigned char byteOf(u1 u);
-unsigned short shortOf(u2 u);
-unsigned int intOf(u4 u);
+ubyte byteOf(u1 u);
+ushort shortOf(u2 u);
+uint intOf(u4 u);
 
 typedef struct {
     u1 tag;
@@ -481,14 +485,14 @@ typedef struct {
 } ClassFile;
 
 typedef struct {
-    unsigned char* actual;
-    unsigned int size;
+    ubyte* actual;
+    uint size;
     long ptr;
 } Bytes;
 
-Bytes bytesOf(const char* content, unsigned int size);
+Bytes bytesOf(const char* content, uint size);
 
-unsigned char readByte(Bytes* bytes);
+ubyte readByte(Bytes* bytes);
 
 u1 readu1(Bytes* bytes);
 u2 readu2(Bytes* bytes);

@@ -21,10 +21,6 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef unsigned char ubyte;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-
 u1 u1of(ubyte first) {
     u1 u = { first };
 
