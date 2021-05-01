@@ -21,43 +21,47 @@
 #include <stdio.h>
 #include <math.h>
 
-u1 u1of(unsigned char first) {
+typedef unsigned char ubyte;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+
+u1 u1of(ubyte first) {
     u1 u = { first };
 
     return u;
 }
 
-u2 u2of(unsigned char first, unsigned char second) {
+u2 u2of(ubyte first, ubyte second) {
     u2 u = { u1of(first), u1of(second) };
 
     return u;
 }
 
-u4 u4of(unsigned char first, unsigned char second, unsigned char third, unsigned char fourth) {
+u4 u4of(ubyte first, ubyte second, ubyte third, ubyte fourth) {
     u4 u = { u2of(first, second), u2of(third, fourth) };
 
     return u;
 }
 
-unsigned char byteOf(u1 u) {
+ubyte byteOf(u1 u) {
     return u.byte;
 }
 
-unsigned short shortOf(u2 u) {
+ushort shortOf(u2 u) {
     return (u.second.byte << 8) | u.first.byte;
 }
 
-unsigned int intOf(u4 u) {
+uint intOf(u4 u) {
     return (u.second.second.byte << 24) + (u.second.first.byte << 16) + (u.first.second.byte << 8) + (u.first.first.byte << 0);
 }
 
-Bytes bytesOf(const char* content, unsigned int size) {
-    Bytes bytes = { (unsigned char*) content, size, 0 };
+Bytes bytesOf(const char* content, uint size) {
+    Bytes bytes = { (ubyte*) content, size, 0 };
 
     return bytes;
 }
 
-unsigned char readByte(Bytes* bytes) {
+ubyte readByte(Bytes* bytes) {
     return bytes->actual[bytes->ptr++];
 }
 
@@ -73,7 +77,7 @@ u4 readu4(Bytes* bytes) {
     return u4of(readByte(bytes), readByte(bytes), readByte(bytes), readByte(bytes));
 }
 
-u1* readu1array_(unsigned int len, Bytes* bytes) {
+u1* readu1array_(uint len, Bytes* bytes) {
     u1* r = (u1*) malloc(len * sizeof(u1));
 
     for (int i = 0; i < len; i++) {
@@ -84,7 +88,7 @@ u1* readu1array_(unsigned int len, Bytes* bytes) {
 }
 
 u1* readu1array(u2 len, Bytes* bytes) {
-    unsigned short actualLen = shortOf(len);
+    ushort actualLen = shortOf(len);
     u1* r = (u1*) malloc(actualLen * sizeof(u1));
 
     for (int i = 0; i < actualLen; i++) {
@@ -95,7 +99,7 @@ u1* readu1array(u2 len, Bytes* bytes) {
 }
 
 u2* readu2array(u2 len, Bytes* bytes) {
-    unsigned short actualLen = shortOf(len);
+    ushort actualLen = shortOf(len);
     u2* r = (u2*) malloc(actualLen * sizeof(u2));
 
     for (int i = 0; i < actualLen; i++) {
@@ -107,7 +111,7 @@ u2* readu2array(u2 len, Bytes* bytes) {
 
 cp_info* readConstantPoolItem(Bytes* bytes) {
     u1 tag = readu1(bytes);
-    unsigned char actual = byteOf(tag);
+    ubyte actual = byteOf(tag);
     cp_info* r;
 
     switch (actual) {
@@ -273,7 +277,7 @@ cp_info** readConstantPool(u2 count, Bytes* bytes) {
         return (cp_info**) malloc(0 * sizeof(cp_info*));
     }
 
-    unsigned short len = shortOf(count) - 1;
+    ushort len = shortOf(count) - 1;
 
     cp_info** r = (cp_info**) malloc(shortOf(count) * sizeof(cp_info*));
 
@@ -287,7 +291,7 @@ cp_info** readConstantPool(u2 count, Bytes* bytes) {
 }
 
 String readUTFString(CONSTANT_Utf8_info from) {
-    unsigned short len = shortOf(from.length);
+    ushort len = shortOf(from.length);
     char* content = (char*) malloc((len + 1) * sizeof(char));
 
     for (int i = 0; i < len; i++) {
@@ -300,7 +304,7 @@ String readUTFString(CONSTANT_Utf8_info from) {
 }
 
 char* readUTF(CONSTANT_Utf8_info from) {
-    unsigned short len = shortOf(from.length);
+    ushort len = shortOf(from.length);
     char* content = (char*) malloc((len + 1) * sizeof(char));
 
     for (int i = 0; i < len; i++) {
@@ -550,7 +554,7 @@ attribute_info* readAttribute(cp_info** constant_pool, Bytes* bytes) {
 
         for (int i = 0; i < shortOf(number_of_entries); i++) {
             u1 frame_type = readu1(bytes);
-            unsigned short byte_frame = byteOf(frame_type);
+            ushort byte_frame = byteOf(frame_type);
             stack_map_frame* entry;
 
             if (byte_frame <= 63) {
@@ -900,7 +904,7 @@ attribute_info* readAttribute(cp_info** constant_pool, Bytes* bytes) {
 }
 
 attribute_info** readAttributes(cp_info** constant_pool, u2 count, Bytes* bytes) {
-    unsigned short len = shortOf(count);
+    ushort len = shortOf(count);
     attribute_info** r = (attribute_info**) malloc(len * sizeof(attribute_info*));
 
     for (int i = 0; i < len; i++) {
@@ -922,7 +926,7 @@ field_info readField(cp_info** constant_pool, Bytes* bytes) {
 }
 
 field_info* readFields(cp_info** constant_pool, u2 count, Bytes* bytes) {
-    unsigned short len = shortOf(count);
+    ushort len = shortOf(count);
     field_info* r = (field_info*) malloc(len * sizeof(field_info));
 
     for (int i = 0; i < len; i++) {
@@ -944,7 +948,7 @@ method_info readMethod(cp_info** constant_pool, Bytes* bytes) {
 }
 
 method_info* readMethods(cp_info** constant_pool, u2 count, Bytes* bytes) {
-    unsigned short len = shortOf(count);
+    ushort len = shortOf(count);
     method_info* r = (method_info*) malloc(len * sizeof(method_info));
 
     for (int i = 0; i < len; i++) {
@@ -993,7 +997,7 @@ ClassFile readClassFile(Bytes bytes) {
     return classFile;
 }
 
-String writeClassAccessFlags(unsigned short access_flags, boolean isClass) {
+String writeClassAccessFlags(ushort access_flags, boolean isClass) {
     String output = stringEmpty();
 
     if ((access_flags & 0x0001) != 0) { // public
@@ -1046,7 +1050,7 @@ CONSTANT_Utf8_info UTF8(cp_info** constant_pool, u2 index) {
     return *(CONSTANT_Utf8_info*) constant_pool[shortOf(index)];
 }
 
-String readJavaVersion(unsigned short majorVersion, unsigned short minorVersion) {
+String readJavaVersion(ushort majorVersion, ushort minorVersion) {
     String result = stringEmpty();
 
     switch (majorVersion) {
@@ -1195,7 +1199,7 @@ Tuple readMethodDescriptor(String descriptor) {
     return tupleOf(dynamicParameters, dynamicReturnType);
 }
 
-attribute_info* findAttribute(char* find, unsigned short size, attribute_info** attributes, cp_info** constant_pool) {
+attribute_info* findAttribute(char* find, ushort size, attribute_info** attributes, cp_info** constant_pool) {
     attribute_info* attribute = (attribute_info*) malloc(sizeof(attribute_info));
 
     for (int i = 0; i < size; i++) {
@@ -1236,7 +1240,7 @@ String readByteCode(u1* code, int* ptr) {
     return itos(byteOf(code[++*ptr]));
 }
 
-unsigned short readShortIn(u1* code, int* ptr) {
+ushort readShortIn(u1* code, int* ptr) {
     u1 first = code[++*ptr];
     u1 second = code[++*ptr];
 
@@ -1282,7 +1286,7 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
     for (int i = 0; i < intOf(code.code_length); i++) {
         append(&result, stringOf("\t\t", 2));
 
-        unsigned char next = byteOf(code.code[i]);
+        ubyte next = byteOf(code.code[i]);
         String typeInfo = stringEmpty();
 
         switch (next) {
@@ -1736,7 +1740,7 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
             case 0xba:
                 append(&result, stringOf("invokedynamic", 13));
 
-                unsigned short cnst = readShortIn(code.code, &i);
+                ushort cnst = readShortIn(code.code, &i);
 
                 append(&result, stringOf(" $", 2));
                 append(&result, itos(cnst));
@@ -1749,7 +1753,7 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
             case 0xb9:
                 append(&result, stringOf("invokeinterface", 15));
 
-                unsigned short cnst_ = readShortIn(code.code, &i);
+                ushort cnst_ = readShortIn(code.code, &i);
 
                 append(&result, stringOf(" $", 2));
                 append(&result, itos(cnst_));
@@ -1764,7 +1768,7 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
             case 0xb7:
                 append(&result, stringOf("invokespecial", 13));
 
-                unsigned short cnst__ = readShortIn(code.code, &i);
+                ushort cnst__ = readShortIn(code.code, &i);
 
                 append(&result, stringOf(" $", 2));
                 append(&result, itos(cnst__));
@@ -1775,7 +1779,7 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
             case 0xb8:
                 append(&result, stringOf("invokestatic", 12));
 
-                unsigned short cnst___ = readShortIn(code.code, &i);
+                ushort cnst___ = readShortIn(code.code, &i);
 
                 append(&result, stringOf(" $", 2));
                 append(&result, itos(cnst___));
@@ -1786,7 +1790,7 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
             case 0xb6:
                 append(&result, stringOf("invokevirtual", 13));
 
-                unsigned short cnst____ = readShortIn(code.code, &i);
+                ushort cnst____ = readShortIn(code.code, &i);
 
                 append(&result, stringOf(" $", 2));
                 append(&result, itos(cnst____));
@@ -1920,16 +1924,16 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
 
                 i += (i + 1) % 4; // 0-3 byte pad
 
-                unsigned char defaultByte1 = byteOf(code.code[++i]);
-                unsigned char defaultByte2 = byteOf(code.code[++i]);
-                unsigned char defaultByte3 = byteOf(code.code[++i]);
-                unsigned char defaultByte4 = byteOf(code.code[++i]);
+                ubyte defaultByte1 = byteOf(code.code[++i]);
+                ubyte defaultByte2 = byteOf(code.code[++i]);
+                ubyte defaultByte3 = byteOf(code.code[++i]);
+                ubyte defaultByte4 = byteOf(code.code[++i]);
                 int defaultByte = (defaultByte1 << 24) | (defaultByte2 << 16) | (defaultByte3 << 8) | defaultByte4;
 
-                unsigned char npairs1 = byteOf(code.code[++i]);
-                unsigned char npairs2 = byteOf(code.code[++i]);
-                unsigned char npairs3 = byteOf(code.code[++i]);
-                unsigned char npairs4 = byteOf(code.code[++i]);
+                ubyte npairs1 = byteOf(code.code[++i]);
+                ubyte npairs2 = byteOf(code.code[++i]);
+                ubyte npairs3 = byteOf(code.code[++i]);
+                ubyte npairs4 = byteOf(code.code[++i]);
                 int npairs = (npairs1 << 24) | (npairs2 << 16) | (npairs3 << 8) | npairs4;
 
                 append(&result, stringOf(" $", 2));
@@ -2001,7 +2005,7 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
                 append(&result, stringOf("new", 3));
                 append(&result, stringOf(" $", 2));
 
-                unsigned short cnst_____ = readShortIn(code.code, &i);
+                ushort cnst_____ = readShortIn(code.code, &i);
 
                 append(&result, itos(cnst_____));
 
@@ -2090,22 +2094,22 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
 
                 i += (i + 1) % 4; // 0-3 byte pad
 
-                unsigned char defaultByte1_ = byteOf(code.code[++i]);
-                unsigned char defaultByte2_ = byteOf(code.code[++i]);
-                unsigned char defaultByte3_ = byteOf(code.code[++i]);
-                unsigned char defaultByte4_ = byteOf(code.code[++i]);
+                ubyte defaultByte1_ = byteOf(code.code[++i]);
+                ubyte defaultByte2_ = byteOf(code.code[++i]);
+                ubyte defaultByte3_ = byteOf(code.code[++i]);
+                ubyte defaultByte4_ = byteOf(code.code[++i]);
                 int defaultByte_ = (defaultByte1_ << 24) | (defaultByte2_ << 16) | (defaultByte3_ << 8) | defaultByte4_;
 
-                unsigned char lowbyte1 = byteOf(code.code[++i]);
-                unsigned char lowbyte2 = byteOf(code.code[++i]);
-                unsigned char lowbyte3 = byteOf(code.code[++i]);
-                unsigned char lowbyte4 = byteOf(code.code[++i]);
+                ubyte lowbyte1 = byteOf(code.code[++i]);
+                ubyte lowbyte2 = byteOf(code.code[++i]);
+                ubyte lowbyte3 = byteOf(code.code[++i]);
+                ubyte lowbyte4 = byteOf(code.code[++i]);
                 int lowbyte = (lowbyte1 << 24) | (lowbyte2 << 16) | (lowbyte3 << 8) | lowbyte4;
 
-                unsigned char highbyte1 = byteOf(code.code[++i]);
-                unsigned char highbyte2 = byteOf(code.code[++i]);
-                unsigned char highbyte3 = byteOf(code.code[++i]);
-                unsigned char highbyte4 = byteOf(code.code[++i]);
+                ubyte highbyte1 = byteOf(code.code[++i]);
+                ubyte highbyte2 = byteOf(code.code[++i]);
+                ubyte highbyte3 = byteOf(code.code[++i]);
+                ubyte highbyte4 = byteOf(code.code[++i]);
                 int highbyte = (highbyte1 << 24) | (highbyte2 << 16) | (highbyte3 << 8) | highbyte4;
 
                 append(&result, stringOf(" $", 2));
@@ -2123,7 +2127,7 @@ String readCode(Code_attribute code, cp_info** constant_pool) {
             case 0xc4:
                 append(&result, stringOf("wide", 4));
 
-                unsigned char opcode = byteOf(code.code[++i]);
+                ubyte opcode = byteOf(code.code[++i]);
 
                 append(&result, stringOf(" $", 2));
                 append(&result, itos(opcode));
@@ -2188,7 +2192,7 @@ char* writeClassFile(ClassFile class) {
 
     append(&output, className);
 
-    unsigned short superClass = shortOf(class.super_class);
+    ushort superClass = shortOf(class.super_class);
 
     if (superClass != 0) {
         append(&output, stringOf(" extends ", 9));
@@ -2202,7 +2206,7 @@ char* writeClassFile(ClassFile class) {
         append(&output, stringOf(superName, shortOf(super.length)));
     }
 
-    unsigned short interfacesCount = shortOf(class.interfaces_count);
+    ushort interfacesCount = shortOf(class.interfaces_count);
 
     if (interfacesCount != 0) {
         append(&output, stringOf(" implements ", 12));
